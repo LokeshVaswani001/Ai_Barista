@@ -83,7 +83,7 @@ def list_allergen_free_items(allergen: str) -> str:
 # The ADK agent itself. It uses Gemini as the reasoning model and has two
 # tools it can call to ground its answers in the actual menu data (RAG).
 root_agent = LlmAgent(
-    model="gemini-2.0-flash",
+    model="gemini-2.5-flash-lite",
     name="ai_barista",
     description="A friendly AI barista that recommends coffee shop menu items.",
     instruction=(
