@@ -1,0 +1,86 @@
+[
+  {
+    "name": "Espresso",
+    "category": "Hot Coffee",
+    "price": 3.0,
+    "tags": ["strong", "classic", "vegan"],
+    "allergens": []
+  },
+  {
+    "name": "Cappuccino",
+    "category": "Hot Coffee",
+    "price": 4.5,
+    "tags": ["creamy", "classic"],
+    "allergens": ["dairy"]
+  },
+  {
+    "name": "Caffe Latte",
+    "category": "Hot Coffee",
+    "price": 4.5,
+    "tags": ["smooth", "mild"],
+    "allergens": ["dairy"]
+  },
+  {
+    "name": "Iced Americano",
+    "category": "Cold Coffee",
+    "price": 3.5,
+    "tags": ["refreshing", "strong", "vegan"],
+    "allergens": []
+  },
+  {
+    "name": "Caramel Frappe",
+    "category": "Cold Coffee",
+    "price": 5.5,
+    "tags": ["sweet", "indulgent"],
+    "allergens": ["dairy"]
+  },
+  {
+    "name": "Oat Milk Latte",
+    "category": "Hot Coffee",
+    "price": 5.0,
+    "tags": ["dairy-free", "smooth", "vegan"],
+    "allergens": []
+  },
+  {
+    "name": "Matcha Green Tea Latte",
+    "category": "Tea",
+    "price": 5.0,
+    "tags": ["earthy", "antioxidant-rich"],
+    "allergens": ["dairy"]
+  },
+  {
+    "name": "Chai Latte",
+    "category": "Tea",
+    "price": 4.5,
+    "tags": ["spiced", "warm"],
+    "allergens": ["dairy"]
+  },
+  {
+    "name": "Almond Croissant",
+    "category": "Bakery",
+    "price": 4.0,
+    "tags": ["sweet", "flaky"],
+    "allergens": ["nuts", "gluten", "dairy", "eggs"]
+  },
+  {
+    "name": "Blueberry Muffin",
+    "category": "Bakery",
+    "price": 3.5,
+    "tags": ["sweet", "fruity"],
+    "allergens": ["gluten", "dairy", "eggs"]
+  },
+  {
+    "name": "Avocado Toast",
+    "category": "Food",
+    "price": 6.5,
+    "tags": ["savory", "healthy", "vegan"],
+    "allergens": ["gluten"]
+  },
+  {
+    "name": "Cold Brew",
+    "category": "Cold Coffee",
+    "price": 4.0,
+    "tags": ["smooth", "low-acid", "vegan"],
+    "allergens": []
+  }
+]
