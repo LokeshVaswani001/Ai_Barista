@@ -1,88 +1,103 @@
 """
-AI Barista - Streamlit App
----------------------------
-A chat interface for the AI Barista RAG agent, deployable for free on
-Streamlit Community Cloud.
+AI Barista Agent
+-----------------
+A simple Retrieval-Augmented Generation (RAG) agent built with Google's
+Agent Development Kit (ADK). The agent answers questions about a coffee
+shop's menu, grounding its responses in a local menu.json data source and
+being careful to flag allergens.
 """
 
-import asyncio
+import json
 import os
+from pathlib import Path
 
-import streamlit as st
+from google.adk.agents import LlmAgent
+from google.adk.models.lite_llm import LiteLlm
+from google.adk.runners import InMemoryRunner
 from google.genai import types
 
-from barista_agent import get_runner
-
-st.set_page_config(page_title="AI Barista", page_icon="☕")
-st.title("☕ AI Barista")
-st.caption("Ask me about our coffee shop menu — drinks, food, or allergens!")
-
-# --- API key setup -----------------------------------------------------
-# Set your Groq API key in Streamlit's "Secrets" (Settings > Secrets):
-#   GROQ_API_KEY = "your-key-here"
-if "GROQ_API_KEY" in st.secrets:
-    os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
-elif not os.environ.get("GROQ_API_KEY"):
-    st.warning(
-        "No GROQ_API_KEY found. Add it under Settings > Secrets in "
-        "Streamlit Community Cloud, or set it as an environment variable."
-    )
-
-# --- Session state -------------------------------------------------------
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-if "runner" not in st.session_state:
-    st.session_state.runner = get_runner()
-    st.session_state.user_id = "guest_user"
-    st.session_state.session_id = "guest_session"
+MENU_PATH = Path(__file__).parent / "menu.json"
 
 
-async def create_session_if_needed():
-    runner = st.session_state.runner
-    try:
-        await runner.session_service.create_session(
-            app_name="ai_barista_app",
-            user_id=st.session_state.user_id,
-            session_id=st.session_state.session_id,
+def load_menu() -> list[dict]:
+    """Load the coffee shop menu from the local JSON data source."""
+    with open(MENU_PATH, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def search_menu(query: str) -> str:
+    """Search the coffee shop menu for items matching a keyword, tag, or category.
+
+    Args:
+        query: A word or phrase to search for (e.g. "vegan", "cold", "sweet").
+
+    Returns:
+        A formatted string listing matching menu items, including price and
+        allergen information, or a message if nothing matches.
+    """
+    menu = load_menu()
+    query_lower = query.lower()
+    matches = []
+
+    for item in menu:
+        haystack = " ".join(
+            [item["name"], item["category"], " ".join(item["tags"])]
+        ).lower()
+        if query_lower in haystack:
+            matches.append(item)
+
+    if not matches:
+        return f"No menu items found matching '{query}'."
+
+    lines = []
+    for item in matches:
+        allergens = ", ".join(item["allergens"]) if item["allergens"] else "none"
+        lines.append(
+            f"- {item['name']} ({item['category']}) - ${item['price']:.2f} "
+            f"| tags: {', '.join(item['tags'])} | allergens: {allergens}"
         )
-    except Exception:
-        # Session may already exist — that's fine.
-        pass
+    return "\n".join(lines)
 
 
-async def get_agent_response(user_text: str) -> str:
-    runner = st.session_state.runner
-    await create_session_if_needed()
+def list_allergen_free_items(allergen: str) -> str:
+    """List menu items that do NOT contain a given allergen.
 
-    content = types.Content(role="user", parts=[types.Part(text=user_text)])
-    final_response = ""
+    Args:
+        allergen: The allergen to avoid (e.g. "dairy", "gluten", "nuts").
 
-    async for event in runner.run_async(
-        user_id=st.session_state.user_id,
-        session_id=st.session_state.session_id,
-        new_message=content,
-    ):
-        if event.is_final_response() and event.content and event.content.parts:
-            final_response = event.content.parts[0].text
+    Returns:
+        A formatted string of safe menu items for that allergen.
+    """
+    menu = load_menu()
+    allergen_lower = allergen.lower()
+    safe_items = [
+        item for item in menu if allergen_lower not in [a.lower() for a in item["allergens"]]
+    ]
 
-    return final_response or "Sorry, I couldn't come up with a response."
+    if not safe_items:
+        return f"No items found without {allergen}."
+
+    lines = [f"- {item['name']} (${item['price']:.2f})" for item in safe_items]
+    return f"Items without {allergen}:\n" + "\n".join(lines)
 
 
-# --- Render chat history ---------------------------------------------------
-for msg in st.session_state.messages:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
+# The ADK agent itself. It uses Gemini as the reasoning model and has two
+# tools it can call to ground its answers in the actual menu data (RAG).
+root_agent = LlmAgent(
+    model=LiteLlm(model="groq/llama-3.3-70b-versatile"),
+    name="ai_barista",
+    description="A friendly AI barista that recommends coffee shop menu items.",
+    instruction=(
+        "You are a warm, friendly AI barista working at a coffee shop. "
+        "Always use the search_menu or list_allergen_free_items tools to "
+        "ground your answers in the real menu — never invent menu items or "
+        "prices. Always mention allergens when recommending food or drinks. "
+        "Keep responses short, friendly, and conversational."
+    ),
+    tools=[search_menu, list_allergen_free_items],
+)
 
-# --- Chat input --------------------------------------------------------
-if prompt := st.chat_input("What can I get for you today?"):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
 
-    with st.chat_message("assistant"):
-        with st.spinner("Brewing a response..."):
-            reply = asyncio.run(get_agent_response(prompt))
-            st.markdown(reply)
-
-    st.session_state.messages.append({"role": "assistant", "content": reply})
+def get_runner() -> InMemoryRunner:
+    """Create an in-memory runner for local/interactive use of the agent."""
+    return InMemoryRunner(agent=root_agent, app_name="ai_barista_app")
