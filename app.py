@@ -18,13 +18,13 @@ st.title("☕ AI Barista")
 st.caption("Ask me about our coffee shop menu — drinks, food, or allergens!")
 
 # --- API key setup -----------------------------------------------------
-# Set your Gemini API key in Streamlit's "Secrets" (Settings > Secrets):
-#   GOOGLE_API_KEY = "your-key-here"
-if "GOOGLE_API_KEY" in st.secrets:
-    os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
-elif not os.environ.get("GOOGLE_API_KEY"):
+# Set your Groq API key in Streamlit's "Secrets" (Settings > Secrets):
+#   GROQ_API_KEY = "your-key-here"
+if "GROQ_API_KEY" in st.secrets:
+    os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
+elif not os.environ.get("GROQ_API_KEY"):
     st.warning(
-        "No GOOGLE_API_KEY found. Add it under Settings > Secrets in "
+        "No GROQ_API_KEY found. Add it under Settings > Secrets in "
         "Streamlit Community Cloud, or set it as an environment variable."
     )
 
