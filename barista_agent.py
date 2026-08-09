@@ -11,6 +11,10 @@ import json
 import os
 from pathlib import Path
 
+import litellm
+
+litellm.drop_params = True
+
 from google.adk.agents import LlmAgent
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.runners import InMemoryRunner
@@ -84,7 +88,7 @@ def list_allergen_free_items(allergen: str) -> str:
 # The ADK agent itself. It uses Gemini as the reasoning model and has two
 # tools it can call to ground its answers in the actual menu data (RAG).
 root_agent = LlmAgent(
-    model=LiteLlm(model="groq/openai/gpt-oss-120b"),
+    model=LiteLlm(model="groq/moonshotai/kimi-k2-instruct"),
     name="ai_barista",
     description="A friendly AI barista that recommends coffee shop menu items.",
     instruction=(
