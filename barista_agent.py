@@ -85,10 +85,9 @@ def list_allergen_free_items(allergen: str) -> str:
     return f"Items without {allergen}:\n" + "\n".join(lines)
 
 
-# The ADK agent itself. It uses Gemini as the reasoning model and has two
-# tools it can call to ground its answers in the actual menu data (RAG).
+# The ADK agent itself, powered by Groq (via LiteLLM) with two RAG tools.
 root_agent = LlmAgent(
-    model=LiteLlm(model="groq/moonshotai/kimi-k2-instruct"),
+    model=LiteLlm(model="groq/llama-3.1-8b-instant"),
     name="ai_barista",
     description="A friendly AI barista that recommends coffee shop menu items.",
     instruction=(
